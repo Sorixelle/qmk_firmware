@@ -29,3 +29,5 @@ SRC =	keyboards/wilba_tech/wt_main.c \
 		drivers/issi/is31fl3733.c \
 		quantum/color.c \
 		drivers/arm/i2c_master.c
+
+CFLAGS += "-Wno-error=deprecated" # qmk ppl pls update chibios
