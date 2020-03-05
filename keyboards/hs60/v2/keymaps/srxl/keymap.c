@@ -29,11 +29,13 @@
 #include QMK_KEYBOARD_H
 
 enum my_keycodes {
-    AUCL = SAFE_RANGE,  // Toggle Autoclicker
-    SWQC,                // Switch between QWERTY/Colemak
+    AUCL = SAFE_RANGE, // Toggle Autoclicker (left-click)
+    AUCR,              // Toggle Autoclicker (right-click)
+    SWQC,              // Switch between QWERTY/Colemak
 };
 
-bool runAutoclick = false;
+bool runAutoclickL = false;
+bool runAutoclickR = false;
 layer_state_t currentLayer = 0;
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -49,7 +51,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,   KC_Q,     KC_W,  KC_F,  KC_P,  KC_G,  KC_J,  KC_L,  KC_U,  KC_O,     KC_SCLN,  KC_LBRC,  KC_RBRC,          KC_BSPC,\
     KC_LCTL,  KC_A,     KC_R,  KC_S,  KC_T,  KC_D,  KC_H,  KC_N,  KC_E,  KC_I,     KC_O,     KC_QUOT,           KC_ENT,          \
     KC_LSPO,            KC_Z,  KC_X,  KC_C,  KC_V,  KC_B,  KC_K,  KC_M,  KC_COMM,  KC_DOT,   KC_SLSH,  KC_RSPC,          MO(3),  \
-    KC_LCTL,  KC_LGUI,  KC_LALT,                    KC_SPC,                        KC_RALT,  KC_RGUI,           KC_RCTL         ), 
+    KC_LCTL,  KC_LGUI,  KC_LALT,                    KC_SPC,                        KC_RALT,  KC_RGUI,           KC_RCTL         ),
 
 [2] = LAYOUT_60_hhkb(
     KC_TRNS, KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,   KC_F12,  KC_TRNS,  MO(4),  \
@@ -70,16 +72,20 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,            KC_TRNS,\
     KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS, KC_TRNS,  KC_TRNS,            KC_TRNS,          \
     KC_TRNS,          KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,            KC_TRNS,\
-    AUCL,    KC_TRNS, KC_TRNS,                            KC_TRNS,                             KC_TRNS,  KC_TRNS,            KC_TRNS          ),
+    AUCR,    KC_TRNS, KC_TRNS,                            KC_TRNS,                             KC_TRNS,  KC_TRNS,            AUCL             ),
 };
 
 void matrix_init_user() {
-  
+
 }
 
 void matrix_scan_user() {
-  if (runAutoclick) {
+  if (runAutoclickL) {
     tap_code(KC_MS_BTN1);
+  }
+
+  if (runAutoclickR) {
+    tap_code(KC_MS_BTN2);
   }
 }
 
@@ -87,17 +93,22 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case AUCL:
       if (record->event.pressed) {
-	runAutoclick = !runAutoclick;
+        runAutoclickL = !runAutoclickL;
+      }
+      return false;
+    case AUCR:
+      if (record->event.pressed) {
+        runAutoclickR = !runAutoclickR;
       }
       return false;
     case SWQC:
       if (record->event.pressed) {
-	if (currentLayer == 0) {
-	  currentLayer = 3;
-	} else {
-	  currentLayer = 0;
-	}
-	layer_state_set(currentLayer);
+        if (currentLayer == 0) {
+            currentLayer = 3;
+        } else {
+          currentLayer = 0;
+        }
+        layer_state_set(currentLayer);
       }
       return false;
     default:
