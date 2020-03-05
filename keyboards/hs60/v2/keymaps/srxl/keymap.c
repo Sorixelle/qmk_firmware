@@ -28,14 +28,28 @@
  */
 #include QMK_KEYBOARD_H
 
+#define HANDLE_AUTO_KEYCODE(keycode, variable)  \
+    case keycode:                               \
+    if (record->event.pressed) {                \
+      variable = !variable;                     \
+    }                                           \
+    return false;
+
+#define DO_AUTOTAP_WHEN(keycode, variable)      \
+    if (variable) {                             \
+      tap_code(keycode);                        \
+    }
+
 enum my_keycodes {
     AUCL = SAFE_RANGE, // Toggle Autoclicker (left-click)
     AUCR,              // Toggle Autoclicker (right-click)
+    AUSH,              // Toggle Autoshift
     SWQC,              // Switch between QWERTY/Colemak
 };
 
 bool runAutoclickL = false;
 bool runAutoclickR = false;
+bool runAutoshift = false;
 layer_state_t currentLayer = 0;
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -71,7 +85,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     RESET  , KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,\
     KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,            KC_TRNS,\
     KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS, KC_TRNS,  KC_TRNS,            KC_TRNS,          \
-    KC_TRNS,          KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,            KC_TRNS,\
+    AUSH,             KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,            KC_TRNS,\
     AUCR,    KC_TRNS, KC_TRNS,                            KC_TRNS,                             KC_TRNS,  KC_TRNS,            AUCL             ),
 };
 
@@ -80,27 +94,16 @@ void matrix_init_user() {
 }
 
 void matrix_scan_user() {
-  if (runAutoclickL) {
-    tap_code(KC_MS_BTN1);
-  }
-
-  if (runAutoclickR) {
-    tap_code(KC_MS_BTN2);
-  }
+  DO_AUTOTAP_WHEN(KC_MS_BTN1, runAutoclickL)
+  DO_AUTOTAP_WHEN(KC_MS_BTN2, runAutoclickR)
+  DO_AUTOTAP_WHEN(KC_LSFT, runAutoshift)
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
-    case AUCL:
-      if (record->event.pressed) {
-        runAutoclickL = !runAutoclickL;
-      }
-      return false;
-    case AUCR:
-      if (record->event.pressed) {
-        runAutoclickR = !runAutoclickR;
-      }
-      return false;
+    HANDLE_AUTO_KEYCODE(AUCL, runAutoclickL)
+    HANDLE_AUTO_KEYCODE(AUCR, runAutoclickR)
+    HANDLE_AUTO_KEYCODE(AUSH, runAutoshift)
     case SWQC:
       if (record->event.pressed) {
         if (currentLayer == 0) {
