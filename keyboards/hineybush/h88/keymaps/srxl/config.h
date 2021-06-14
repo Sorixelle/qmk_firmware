@@ -16,6 +16,5 @@
 
 #pragma once
 
-
-// place overrides here
-
+#define UNICODE_SELECTED_MODES UC_LNX
+#define LEADER_TIMEOUT 500
